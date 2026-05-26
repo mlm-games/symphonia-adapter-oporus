@@ -65,6 +65,21 @@ fn test_stereo_params() {
 }
 
 #[test]
+fn test_creation_without_channels_or_sample_rate_falls_back() {
+    let mut params = AudioCodecParameters::new();
+    params.codec = CODEC_ID_OPUS;
+    // omittin channels and sample_rate should fall back to defaults
+
+    let decoder = OpusDecoder::try_registry_new(&params, &AudioDecoderOptions::default());
+    assert!(decoder.is_ok(), "decoder should fall back to stereo/48kHz");
+
+    let decoder = decoder.unwrap();
+    let codec_params = decoder.codec_params();
+    assert_eq!(codec_params.sample_rate, Some(48000));
+    assert_eq!(codec_params.channels.as_ref().map(|c| c.count()), Some(2));
+}
+
+#[test]
 fn test_reset() {
     let mut decoder =
         OpusDecoder::try_registry_new(&test_params(), &AudioDecoderOptions::default())

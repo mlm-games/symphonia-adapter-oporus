@@ -47,46 +47,65 @@ impl fmt::Debug for OpusDecoder {
     }
 }
 
-fn parse_pre_skip(buf: &[u8]) -> Result<usize> {
+struct OpusHead {
+    channels: usize,
+    pre_skip: usize,
+    sample_rate: u32,
+}
+
+fn parse_opus_head(buf: &[u8]) -> Option<OpusHead> {
     let mut reader = BufReader::new(buf);
 
     let mut header = [0; 8];
-    reader.read_buf_exact(&mut header)?;
+    reader.read_buf_exact(&mut header).ok()?;
+    if &header != b"OpusHead" {
+        return None;
+    }
 
-    reader.read_byte()?;
+    let _version = reader.read_byte().ok()?;
+    let channels = reader.read_byte().ok()? as usize;
+    let pre_skip = reader.read_u16().ok()? as usize;
 
-    reader.read_byte()?;
-
-    let pre_skip = reader.read_u16()?;
-
-    Ok(pre_skip as usize)
+    Some(OpusHead {
+        channels,
+        pre_skip,
+        sample_rate: 48000,
+    })
 }
 
 impl OpusDecoder {
     fn try_new(params: &AudioCodecParameters, _opts: &AudioDecoderOptions) -> Result<Self> {
-        let num_channels = if let Some(channels) = &params.channels {
-            channels.count()
-        } else {
-            return unsupported_error("opus: channels or channel layout is required");
-        };
-        let sample_rate = if let Some(sample_rate) = params.sample_rate {
-            sample_rate
-        } else {
-            return unsupported_error("opus: sample rate required");
-        };
+        let opus_head = params
+            .extra_data
+            .as_ref()
+            .and_then(|d| parse_opus_head(d));
+
+        let num_channels = params
+            .channels
+            .as_ref()
+            .map(|c| c.count())
+            .or_else(|| opus_head.as_ref().map(|h| h.channels))
+            .unwrap_or(2);
 
         if !(1..=2).contains(&num_channels) {
             return unsupported_error("opus: unsupported number of channels");
         }
 
-        let pre_skip = if let Some(extra_data) = &params.extra_data {
-            parse_pre_skip(extra_data).unwrap_or_default()
-        } else {
-            0
-        };
+        let sample_rate = params
+            .sample_rate
+            .or_else(|| opus_head.as_ref().map(|h| h.sample_rate))
+            .unwrap_or(DEFAULT_SAMPLE_RATE as u32);
+
+        let pre_skip = opus_head.map(|h| h.pre_skip).unwrap_or(0);
+
+        let mut owned_params = params.to_owned();
+        owned_params.sample_rate = Some(sample_rate);
+        owned_params.channels = Some(map_to_channels(num_channels).unwrap_or_else(|| {
+            symphonia_core::audio::Channels::Discrete(num_channels as u16)
+        }));
 
         Ok(Self {
-            params: params.to_owned(),
+            params: owned_params,
             decoder: Decoder::new(sample_rate, num_channels as u32)?,
             buf: audio_buffer(sample_rate, DEFAULT_SAMPLES_PER_CHANNEL, num_channels),
             pcm: [0.0; MAX_SAMPLES_PER_CHANNEL * 2],

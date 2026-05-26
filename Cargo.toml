@@ -1,0 +1,12 @@
+[package]
+name = "symphonia-adapter-mousiki"
+description = "Adapter to use mousiki pure-Rust Opus decoder with Symphonia"
+version = "0.1.0"
+license = "LGPL-2.1"
+edition = "2021"
+rust-version = "1.70"
+
+[dependencies]
+mousiki = "0.2"
+symphonia-core = "0.6"
+log = "0.4"

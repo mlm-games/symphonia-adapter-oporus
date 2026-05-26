@@ -47,7 +47,7 @@ checksum = "616ec5685824bcc94416c6d4a7a446eea774a31efd7062c8480ba6fd06d7a6e5"
 [[package]]
 name = "mousiki"
 version = "0.2.2"
-source = "git+https://github.com/mlm-games/mousiki-recovered#2ce56b6cbf498f83cac54ae6fda12de03120f906"
+source = "git+https://github.com/mlm-games/mousiki-recovered#b95b0565f9cb98a2863c9cbf54f4694a1c68fb53"
 dependencies = [
  "bitflags",
  "cfg-if",

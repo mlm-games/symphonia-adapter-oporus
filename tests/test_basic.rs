@@ -1,7 +1,5 @@
 use symphonia_core::codecs::audio::well_known::CODEC_ID_OPUS;
-use symphonia_core::codecs::audio::{
-    AudioCodecParameters, AudioDecoderOptions,
-};
+use symphonia_core::codecs::audio::{AudioCodecParameters, AudioDecoderOptions};
 use symphonia_core::codecs::registry::RegisterableAudioDecoder;
 use symphonia_core::units::{Duration, Timestamp};
 
@@ -31,9 +29,8 @@ fn test_supported_codecs() {
 
 #[test]
 fn test_codec_info() {
-    let decoder =
-        OpusDecoder::try_registry_new(&test_params(), &AudioDecoderOptions::default())
-            .expect("decoder creation");
+    let decoder = OpusDecoder::try_registry_new(&test_params(), &AudioDecoderOptions::default())
+        .expect("decoder creation");
     let info = decoder.codec_info();
     assert_eq!(info.short_name, "opus");
     assert_eq!(info.long_name, "Opus");

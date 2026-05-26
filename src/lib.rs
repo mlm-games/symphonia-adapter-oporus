@@ -121,8 +121,7 @@ impl AudioDecoder for OpusDecoder {
         let samples_per_channel = self.decoder.decode(packet.data, &mut self.pcm)?;
 
         if samples_per_channel != self.samples_per_channel {
-            self.buf =
-                audio_buffer(self.sample_rate, samples_per_channel, self.num_channels);
+            self.buf = audio_buffer(self.sample_rate, samples_per_channel, self.num_channels);
             self.samples_per_channel = samples_per_channel;
         }
 

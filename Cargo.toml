@@ -7,6 +7,9 @@ edition = "2024"
 rust-version = "1.85"
 
 [dependencies]
-mousiki = "0.2"
+# mousiki = { path = "/home/ymsr/Documents/Repos/mousiki-recovered", features = ["fixed_point"] }
+mousiki = { git = "https://github.com/mlm-games/mousiki-recovered", features = [
+    "fixed_point",
+] }
 symphonia-core = "0.6"
 log = "0.4"

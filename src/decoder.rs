@@ -26,14 +26,14 @@ impl Decoder {
         Ok(Self { inner })
     }
 
-    pub(crate) fn decode(&mut self, input: &[u8], output: &mut [f32]) -> Result<usize> {
+    pub(crate) fn decode(&mut self, input: &[u8], output: &mut [i16]) -> Result<usize> {
         if input.is_empty() {
-            self.inner.conceal_float(output).map_err(|e| {
+            self.inner.conceal(output).map_err(|e| {
                 warn!("mousiki conceal failed: {e:?}");
                 symphonia_core::errors::Error::DecodeError("opus: decode failed")
             })
         } else {
-            self.inner.decode_float(input, output, false).map_err(|e| {
+            self.inner.decode(input, output, false).map_err(|e| {
                 warn!("mousiki decode failed: {e:?}");
                 symphonia_core::errors::Error::DecodeError("opus: decode failed")
             })

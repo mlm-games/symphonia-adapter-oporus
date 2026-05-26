@@ -26,7 +26,8 @@ pub struct OpusDecoder {
     params: AudioCodecParameters,
     decoder: Decoder,
     buf: AudioBuffer<f32>,
-    pcm: [f32; MAX_SAMPLES_PER_CHANNEL * 2],
+    pcm_i16: [i16; MAX_SAMPLES_PER_CHANNEL * 2],
+    pcm_f32: [f32; MAX_SAMPLES_PER_CHANNEL * 2],
     samples_per_channel: usize,
     sample_rate: u32,
     num_channels: usize,
@@ -39,7 +40,7 @@ impl fmt::Debug for OpusDecoder {
             .field("params", &self.params)
             .field("decoder", &self.decoder)
             .field("buf", &"<buf>")
-            .field("pcm", &"<pcm>")
+            .field("pcm_i16", &"<pcm>")
             .field("samples_per_channel", &self.samples_per_channel)
             .field("sample_rate", &self.sample_rate)
             .field("num_channels", &self.num_channels)
@@ -108,7 +109,8 @@ impl OpusDecoder {
             params: owned_params,
             decoder: Decoder::new(sample_rate, num_channels as u32)?,
             buf: audio_buffer(sample_rate, DEFAULT_SAMPLES_PER_CHANNEL, num_channels),
-            pcm: [0.0; MAX_SAMPLES_PER_CHANNEL * 2],
+            pcm_i16: [0; MAX_SAMPLES_PER_CHANNEL * 2],
+            pcm_f32: [0.0; MAX_SAMPLES_PER_CHANNEL * 2],
             samples_per_channel: DEFAULT_SAMPLES_PER_CHANNEL,
             sample_rate,
             num_channels,
@@ -137,7 +139,7 @@ impl AudioDecoder for OpusDecoder {
         &mut self,
         packet: &symphonia_core::packet::PacketRef<'_>,
     ) -> Result<GenericAudioBufferRef<'_>> {
-        let samples_per_channel = self.decoder.decode(packet.data, &mut self.pcm)?;
+        let samples_per_channel = self.decoder.decode(packet.data, &mut self.pcm_i16)?;
 
         if samples_per_channel != self.samples_per_channel {
             self.buf = audio_buffer(self.sample_rate, samples_per_channel, self.num_channels);
@@ -145,11 +147,13 @@ impl AudioDecoder for OpusDecoder {
         }
 
         let samples = samples_per_channel * self.num_channels;
-        let pcm = &self.pcm[..samples];
+        let pcm_i16 = &self.pcm_i16[..samples];
+        convert_i16_to_f32(pcm_i16, &mut self.pcm_f32[..samples]);
 
         self.buf.clear();
         self.buf.render_uninit(None);
-        self.buf.copy_from_slice_interleaved(&pcm);
+        let slice: &[f32] = &self.pcm_f32[..samples];
+        self.buf.copy_from_slice_interleaved(&slice);
 
         self.buf.trim(
             packet.trim_start.get() as usize
@@ -193,6 +197,12 @@ pub(crate) fn map_to_channels(num_channels: usize) -> Option<symphonia_core::aud
     };
 
     Some(channels)
+}
+
+fn convert_i16_to_f32(src: &[i16], dst: &mut [f32]) {
+    for (s, d) in src.iter().zip(dst.iter_mut()) {
+        *d = *s as f32 * (1.0 / 32768.0);
+    }
 }
 
 fn audio_buffer(

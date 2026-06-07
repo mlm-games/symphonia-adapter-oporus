@@ -45,17 +45,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "616ec5685824bcc94416c6d4a7a446eea774a31efd7062c8480ba6fd06d7a6e5"
 
 [[package]]
-name = "mousiki"
-version = "0.2.2"
-source = "git+https://github.com/mlm-games/mousiki-recovered#b95b0565f9cb98a2863c9cbf54f4694a1c68fb53"
-dependencies = [
- "bitflags",
- "cfg-if",
- "libm",
- "log",
-]
-
-[[package]]
 name = "num-complex"
 version = "0.4.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -74,17 +63,29 @@ dependencies = [
 ]
 
 [[package]]
+name = "oporus"
+version = "0.2.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2a6e57342fbf0d69472e56a00c870b3e052062139e0b0da33eb502b2c6e13582"
+dependencies = [
+ "bitflags",
+ "cfg-if",
+ "libm",
+ "log",
+]
+
+[[package]]
 name = "smallvec"
 version = "1.15.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "67b1b7a3b5fe4f1376887184045fcf45c69e92af734b7aaddc05fb777b6fbd03"
 
 [[package]]
-name = "symphonia-adapter-mousiki"
+name = "symphonia-adapter-oporus"
 version = "0.1.1"
 dependencies = [
  "log",
- "mousiki",
+ "oporus",
  "symphonia-core",
 ]
 

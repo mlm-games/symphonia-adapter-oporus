@@ -3,7 +3,7 @@ use symphonia_core::codecs::audio::{AudioCodecParameters, AudioDecoderOptions};
 use symphonia_core::codecs::registry::RegisterableAudioDecoder;
 use symphonia_core::units::{Duration, Timestamp};
 
-use symphonia_adapter_mousiki::OpusDecoder;
+use symphonia_adapter_oporus::OpusDecoder;
 
 fn test_params() -> AudioCodecParameters {
     let mut params = AudioCodecParameters::new();
